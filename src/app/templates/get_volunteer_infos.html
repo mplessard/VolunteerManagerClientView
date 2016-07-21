@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Volunteer informations{% endblock %}
+{% block main %}
+{% set volunteer_infos = get_json("http://localhost:8080/VolunteerManager/api/v1/volunteerservice/volunteers/" + volunteer_id + "?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB") %}
+
+	<h1>{{volunteer_infos.username}}</h1>
+
+	<ul>
+		{% for key, value in volunteer_infos.items() recursive %}
+			<li>
+			{% if value is string %}
+				{{ key }} : {{ value }}
+			{% elif value|int %}
+				{{ key }} : {{ value }}
+			{% elif value is none %}
+				{{ key }} : {{ value }}
+			{% else %}
+				{{ key }}
+					<ul>{{ loop(value.items()) }}</ul>
+			{% endif %}
+			</li>
+		{% endfor %}
+	</ul>
+{% endblock %}

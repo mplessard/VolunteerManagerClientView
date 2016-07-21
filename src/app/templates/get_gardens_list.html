@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %} Gardens list {% endblock %}
+{% block main %}
+	<h1>Gardens list</h1>
+
+	<ul>
+		{% set gardens_list = get_json("http://localhost:8080/VolunteerManager/api/v1/gardenservice/gardens?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB") %}
+
+		{% for garden in gardens_list['gardens'] %}
+			<li><a href="gardens/{{ garden['id'] }}">{{ garden['name'] }}</a></li>
+		{% endfor %}
+	</ul>
+{% endblock %}
