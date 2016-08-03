@@ -11,19 +11,29 @@
     <div class="text-center">
         {% with messages = get_flashed_messages() %}
           {% if messages %}
-            <ul>
             {% for message in messages %}
-                <li>{{ message }} </li>
+                <div class="alert alert-info">{{ message }} </div>
             {% endfor %}
-            </ul>
           {% endif %}
         {% endwith %}
     </div>
     <main class="container">
-        {% block main %}{% endblock %}
+        <div class="row">
+            <nav class="col-md-3">
+            {% if session['token'] %}
+            <h3>Menu:</h3>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Index</a></li>
+                <li><a href="{{ url_for('addGarden') }}">Add a Garden</a></li>
+                <li><a href="{{ url_for('gardens')}}">View gardens list</a></li>
+                <li><a href="{{ url_for('volunteers')}}">View volunteers list</a></li>
+            </ul>
+            {% endif %}
+            </nav>
+            <div class="col-sm-12 col-md-6">
+                {% block main %}{% endblock %}
+            </div>
+        </div>
     </main>
-    <nav>
-        {% block nav %}{% endblock %}
-    </nav>
 </body>
 </html>

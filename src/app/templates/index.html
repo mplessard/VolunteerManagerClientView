@@ -3,11 +3,19 @@
 
 {% block main %}
 	<h1>Volunteer Manager Viewer</h1>
-	
-	Possibilities:
-	<ul>
-		<li><a href="http://127.0.0.1:5000/register">Register a volunteer</a></li>
-		<li><a href="http://127.0.0.1:5000/gardens">View gardens list</a></li>
-		<li><a href="http://127.0.0.1:5000/volunteers">view volunteers list</a></li>
-	</ul>
+	{% if 'token' in session %}
+		Possibilities:
+		<ul>
+			<li><a href="{{ url_for('addGarden') }}"> Add a garden</a></li>
+			<li><a href="{{ url_for('gardens') }}">View gardens list</a></li>
+            <li><a href="{{ url_for('volunteers') }}">View volunteers list</a></li>
+		</ul>
+		<form action="" method="post">
+			<input class="btn btn-block" type="submit" name="logout" value="logout" />
+		</form>
+	{% else %}
+	<br/>
+		<p class="text-center">You have to <a href="{{ url_for('login') }}">login</a> to see the options.</p>
+		<p class="text-center">If you're not a user yet, please <a href="{{ url_for('register') }}">register</a>.</p>
+	{% endif %}
 {% endblock %}
