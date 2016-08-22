@@ -6,7 +6,9 @@
 	{% if 'token' in session %}
 		Possibilities:
 		<ul>
-			<li><a href="{{ url_for('addGarden') }}"> Add a garden</a></li>
+			{% if session['role'] == 2 %}
+            	<li><a href="{{ url_for('addGarden') }}">Add a Garden</a></li>
+            {% endif %}
 			<li><a href="{{ url_for('gardens') }}">View gardens list</a></li>
             <li><a href="{{ url_for('volunteers') }}">View volunteers list</a></li>
 		</ul>

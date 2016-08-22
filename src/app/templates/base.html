@@ -24,9 +24,12 @@
             <h3>Menu:</h3>
             <ul>
                 <li><a href="{{ url_for('index') }}">Index</a></li>
-                <li><a href="{{ url_for('addGarden') }}">Add a Garden</a></li>
-                <li><a href="{{ url_for('gardens')}}">View gardens list</a></li>
-                <li><a href="{{ url_for('volunteers')}}">View volunteers list</a></li>
+                <li><a href="{{ url_for('gardens')}}">Gardens list</a></li>
+                <li><a href="{{ url_for('volunteers')}}">Volunteers list</a></li>
+                {% if session['role'] == 2 %}
+                    <li><a href="{{ url_for('addGarden') }}">Add a Garden</a></li>
+                {% endif %}
+                <li><a href="{{url_for('volunteer', volunteer_id=session['id']) }}">My Profile</a></li>
             </ul>
             {% endif %}
             </nav>
