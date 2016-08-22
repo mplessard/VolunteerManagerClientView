@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}garden informations{% endblock %}
 {% block main %}
-{% set garden_infos = get_json("http://localhost:8081/GardenManager/api/v1/gardenservice/gardens/" + garden_id + "?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB") %}
 	
 <h1>{{garden_infos.name}} <small>(id={{garden_infos.id}})</small></h1>
 <p><b>Address:</b> {{garden_infos.address}}</p>

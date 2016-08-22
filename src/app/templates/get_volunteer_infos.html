@@ -2,44 +2,48 @@
 {% block title %}Volunteer informations{% endblock %}
 {% block main %}
 
-{% set volunteer_infos = get_json("http://localhost:8080/VolunteerManager/api/v1/volunteerservice/volunteers/" + volunteer_id + "?access_token=" + session['token']) %}
 <h1>{{volunteer_infos.username}} <small>(id={{volunteer_infos.id}})</small> </h1>
 <p>{{volunteer_infos.email}}</p>
 <h3>{{volunteer_infos.username}} tasks:</h3>
+	{% if not volunteer_infos['tasks'] is defined %}
+		<p>There's no task for {{volunteer_infos.username}} at the moment.</p>
+	{% endif %}
 	
 	{% for tasksid in volunteer_infos['tasks']%}
-	
 		<ul style="list-style:none;padding-left:10px;">
 			{% for task in volunteer_infos['tasks'][tasksid] %}
-				<!--VOIR A CA-->
-				{% set taskjson = get_json("http://localhost:8080/VolunteerManager/api/v1/volunteerservice/volunteers/" + volunteer_id + "/tasks/" + tasksid + "?access_token=" + session['token']) %}
-				<li><b>Garden:</b> {# {{ garden.name }} #}</li>
+				{% set taskjson = get_json(esb_url + 'volunteers/' + volunteer_id + '/tasks/' + tasksid + '?access_token=' + session['token']) %}
+				{% set garden = get_json(esb_url + 'gardens/' + taskjson['gardenID']|string + '?access_token=' + session['token']) %}
+				<li><b>Garden:</b> {{ garden.name }}</li>
 				<li><b>{{ task }}:</b> {{ volunteer_infos['tasks'][tasksid][task]}}</li>
 			{% endfor %}
-			
-			<a href="{{ url_for('deleteTask', task_id=tasksid, volunteer_id=volunteer_id) }}" class="btn btn-xs btn-danger"><i class="glyphicon glyphicon-remove"> </i></a>
-			<a href="{{ url_for('updateTask', task_id=tasksid, volunteer_id=volunteer_id) }}" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"> </i></a>
+			{% if session['role'] == 2 or session['id'] == volunteer_infos.id %}
+				<a href="{{ url_for('deleteTask', task_id=tasksid, volunteer_id=volunteer_id) }}" class="btn btn-xs btn-danger"><i class="glyphicon glyphicon-remove"> </i></a>
+				<a href="{{ url_for('updateTask', task_id=tasksid, volunteer_id=volunteer_id) }}" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"> </i></a>
+			{% endif %}
 		</ul>
 		<br/>
 	{% endfor %}
 <br/>
-<h3>Assign a task to {{volunteer_infos.username}}:</h3>
-<form action="" method="post" name="add-garden">
-	<label for="gardenname">Garden:</label>
-	{% for error in form[0].gardenname.errors %}
-        <span style="color: #d9534f; float:right;"><em>{{ error }}</em></span>
-    {% endfor %}
+{% if session['role'] == 2 or session['id'] == volunteer_infos.id %}
+	<h3>Assign a task to {{volunteer_infos.username}}:</h3>
+	<form action="" method="post" name="add-garden">
+		<label for="gardenname">Garden:</label>
+		{% for error in form[0].gardenname.errors %}
+	        <span style="color: #d9534f; float:right;"><em>{{ error }}</em></span>
+	    {% endfor %}
 
-    {{ form[0].gardenname(class="form-control") }}
-    <br/>
+	    {{ form[0].gardenname(class="form-control") }}
+	    <br/>
 
-    <label for="task">Task:</label> 
-    {% for error in form[0].task.errors %}
-        <span style="color: #d9534f; float:right;"><em>{{ error }}</em></span>
-    {% endfor %}
-    {{ form[0].task(class="form-control") }}
-    <br/>
-    
-    {{ form[0].addtask(class="btn btn-block")}}
-</form>
+	    <label for="task">Task:</label> 
+	    {% for error in form[0].task.errors %}
+	        <span style="color: #d9534f; float:right;"><em>{{ error }}</em></span>
+	    {% endfor %}
+	    {{ form[0].task(class="form-control") }}
+	    <br/>
+	    
+	    {{ form[0].addtask(class="btn btn-block")}}
+	</form>
+{% endif %}
 {% endblock %}

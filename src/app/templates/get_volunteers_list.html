@@ -3,12 +3,9 @@
 {% block main %}
 	<h1>Volunteers' list</h1>
 
-	<ul>
-		{% set volunteers_list = get_json("http://localhost:8080/VolunteerManager/api/v1/volunteerservice/volunteers?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB") %}
-				
-		{% for volunteer in volunteers_list['volunteers'] %}
+	<ul>				
+		{% for volunteer in volunteers_list %}
 			<li><a href="volunteers/{{ volunteer['id'] }}">{{ volunteer['username'] }}</a></li>
 		{% endfor %}
-		
 	</ul>
 {% endblock %}

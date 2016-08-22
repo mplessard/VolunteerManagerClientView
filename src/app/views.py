@@ -3,8 +3,7 @@ from app import app
 from .forms import RegistrationForm, LoginForm, AddTaskForm, DeleteTaskForm, UpdateTaskForm, AddGardenForm
 import requests, json, urllib
 
-appendGardenUrl = 'http://localhost:8081/GardenManager/api/v1/gardenservice/'
-appendVolunteerUrl = 'http://localhost:8080/VolunteerManager/api/v1/volunteerservice/'
+esb_url = 'http://localhost:8280/manager/api/'
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
@@ -15,49 +14,60 @@ def index():
 
 @app.route('/volunteers')
 def volunteers():
-	return render_template('get_volunteers_list.html')
+	volunteers_list = get_json(esb_url + 'volunteers?access_token=' + session['token'])
+	return render_template('get_volunteers_list.html', volunteers_list=volunteers_list)
 
 @app.route('/volunteers/<volunteer_id>', methods=['GET', 'POST'])
 def volunteer(volunteer_id):
 	form = [AddTaskForm(request.form), DeleteTaskForm(request.form)]
-	gardens_list = get_json(appendGardenUrl + 'gardens?access_token=' + session['token'])
+	gardens_list = get_json(esb_url + 'gardens?access_token=' + session['token'])
 	form[0].gardenname.choices = [(gn['id'], gn['name']) for gn in gardens_list['gardens']]
 	
 	if request.method == 'POST' and form[0].validate():
 		gardenname = form[0].gardenname.data
 		task = form[0].task.data
 
-		r = requests.post(appendVolunteerUrl + 'volunteers/' + str(volunteer_id) + '/tasks?access_token=' + session['token'],
+		r = requests.post(esb_url + 'volunteers/' + str(volunteer_id) + '/tasks?access_token=' + session['token'],
 			data={'gardenid': gardenname, 'task': task})
 		flash(r.text)
-	return render_template('get_volunteer_infos.html', volunteer_id=volunteer_id, form=form)
+
+	volunteer_infos = get_json(esb_url + 'volunteers/' + str(volunteer_id) + '?access_token=' + session['token'])
+	return render_template('get_volunteer_infos.html', volunteer_id=volunteer_id, form=form, volunteer_infos=volunteer_infos, esb_url=esb_url)
 
 @app.route('/volunteers/<volunteer_id>/update/tasks/<task_id>', methods=['GET', 'POST'])
 def updateTask(volunteer_id, task_id):
+	task_infos = get_json(esb_url + 'volunteers/' + str(volunteer_id) + '/tasks/' + str(task_id) + '?access_token=' + session['token'])
+	gardens = get_json(esb_url + 'gardens/' + str(task_infos['gardenID']) + '?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB')
 	form = UpdateTaskForm(request.form)
 
 	if request.method == 'POST' and form.validate():
 		taskdesc = form.task.data
-		r = requests.post(appendVolunteerUrl + 'volunteers/' + str(volunteer_id) + '/tasks/' + str(task_id) + '?access_token=' + session['token'],
+		r = requests.post(esb_url + 'volunteers/' + str(volunteer_id) + '/tasks/' + str(task_id) + '?access_token=' + session['token'],
 			data={'taskdesc': taskdesc})
 		flash(r.text)
 		return redirect(url_for('volunteer', volunteer_id=volunteer_id))
-	return render_template('task_edition.html', volunteer_id=volunteer_id, task_id=task_id, form=form)
+	return render_template('task_edition.html', volunteer_id=volunteer_id, form=form, task_infos=task_infos, gardens=gardens)
 
 @app.route('/volunteers/<volunteer_id>/delete/tasks/<task_id>', methods=['GET', 'POST'])
 def deleteTask(volunteer_id, task_id):
-	r = requests.delete(appendVolunteerUrl + 'volunteers/' + str(volunteer_id) + '/tasks/' + str(task_id) + '?access_token=' + session['token'])
+	r = requests.delete(esb_url + 'volunteers/' + str(volunteer_id) + '/tasks/' + str(task_id) + '?access_token=' + session['token'])
 	flash(r.text)
 	return redirect(url_for('volunteer', volunteer_id=volunteer_id))
 
 @app.route('/gardens')
 def gardens():
-	return render_template('get_gardens_list.html')
+	gardens_list = get_json(esb_url + 'gardens?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB')
+	return render_template('get_gardens_list.html', gardens_list=gardens_list)
+
+@app.route('/gardens/<garden_id>')
+def garden(garden_id):
+	garden_infos = get_json(esb_url + 'gardens/' + str(garden_id) + '?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB')
+	return render_template('get_garden_infos.html', garden_id=garden_id, garden_infos=garden_infos)
 
 @app.route('/add/garden', methods=['GET', 'POST'])
 def addGarden():
 	form = AddGardenForm(request.form)
-	categories = get_json(appendGardenUrl + 'categories?access_token=' + session['token'])
+	categories = get_json(esb_url + 'gardens/categories?access_token=' + session['token'])
 	form.category.choices = [(c['id'], c['name']) for c in categories['categories']]
 
 	if request.method == 'POST' and form.validate():
@@ -65,7 +75,7 @@ def addGarden():
 		category = form.category.data
 		address = form.address.data
 
-		r = requests.post(appendGardenUrl + 'gardens?access_token=' + session['token'],
+		r = requests.post(esb_url + 'gardens?access_token=' + session['token'],
 			data={'name': name, 'category': category, 'address': address})
 		flash(r.text)
 		return redirect(url_for('gardens'))
@@ -73,30 +83,34 @@ def addGarden():
 
 @app.route('/delete/garden/<garden_id>')
 def deleteGarden(garden_id):
-	r = requests.delete(appendGardenUrl + 'gardens/' + str(garden_id) + '?access_token=' + session['token'])
+	r = requests.delete(esb_url + 'gardens/' + str(garden_id) + '?access_token=' + session['token'])
 	flash(r.text)
+
+	tasks = get_json(esb_url + 'volunteers/tasks' + '?access_token=' + session['token'])
+
+	for t in tasks:
+		if t['gardenID'] == int(garden_id):
+		 	r = requests.delete(esb_url + 'volunteers/' + str(t['volunteerID']) + '/tasks/' + str(t['taskID']) + '?access_token=' + session['token'])
+
 	return redirect(url_for('gardens'))
 
 @app.route('/update/garden/<garden_id>', methods=['GET', 'POST'])
 def updateGarden(garden_id):
 	form = AddGardenForm(request.form)
-	categories = get_json(appendGardenUrl + 'categories?access_token=' + session['token'])
+	categories = get_json(esb_url + 'gardens/categories?access_token=' + session['token'])
 	form.category.choices = [(c['id'], c['name']) for c in categories['categories']]
+	garden_infos = get_json(esb_url + 'gardens/' + garden_id + '?access_token=' + session['token'])
 
 	if request.method == 'POST' and form.validate():
 		name = form.name.data
 		category = form.category.data
 		address = form.address.data
 
-		r = requests.post(appendGardenUrl + 'gardens/' + str(garden_id) + '?access_token=' + session['token'],
+		r = requests.post(esb_url + 'gardens/' + str(garden_id) + '?access_token=' + session['token'],
 			data={'name': name, 'category': category, 'address': address})
 		flash(r.text)
 		return redirect(url_for('gardens'))
-	return render_template('update_garden.html', form=form, garden_id=garden_id)
-
-@app.route('/gardens/<garden_id>')
-def garden(garden_id):
-	return render_template('get_garden_infos.html', garden_id=garden_id)
+	return render_template('update_garden.html', form=form, garden_id=garden_id, garden_infos=garden_infos)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -106,7 +120,7 @@ def register():
 		email = form.email.data
 		password = form.password.data
 		
-		r = requests.post(appendVolunteerUrl + 'volunteers',
+		r = requests.post(esb_url + 'volunteers',
 			data={'username': username, 'email': email, 'password': password})
 		
 		if r.status_code == 200:
@@ -133,8 +147,10 @@ def login():
 			session['token'] = token
 			session['exp_date'] = exp_date
 			session['username'] = username
+			session['role'] = token_infos['role']
+			session['id'] = token_infos['id']
 
-			r2 = requests.post(appendGardenUrl + 'users',
+			r2 = requests.post(esb_url + 'gardens/authenticate',
 			 	data={'token': token, 'date': exp_date})
 
 			if r2.status_code == 200:

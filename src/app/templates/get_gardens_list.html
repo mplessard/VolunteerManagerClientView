@@ -1,18 +1,21 @@
 {% extends "base.html" %}
 {% block title %} Gardens list {% endblock %}
 {% block main %}
-{% set gardens_list = get_json("http://localhost:8081/GardenManager/api/v1/gardenservice/gardens?access_token=sVmThUIdLblP1oVOvDB6eHpBIollsO3NNmuSq-dOrlCsYZWMmRVhI8i_aXTyzQIB") %}
 <h1>Gardens list</h1>
 
 <ul style="list-style:none;padding-left:0;">
 	{% for garden in gardens_list['gardens'] %}
 		<li>
+		{% if session['role'] == 2 %}
 			<a href="{{ url_for('deleteGarden', garden_id=garden['id']) }}" class="btn btn-xs btn-danger"><i class="glyphicon glyphicon-remove"> </i></a>
 			<a href="{{ url_for('updateGarden', garden_id=garden['id']) }}" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"> </i></a>
+		{% endif %}
 			<a href="gardens/{{ garden['id'] }}">{{ garden['name'] }}</a> 
 		</li>
 	{% endfor %}
 </ul>
 <br/>
-<a href="{{ url_for('addGarden') }}" class="btn btn-block btn-success">Add a garden</a>
+{% if session['role'] == 2 %}
+	<a href="{{ url_for('addGarden') }}" class="btn btn-block btn-success">Add a garden</a>
+{% endif %}
 {% endblock %}
