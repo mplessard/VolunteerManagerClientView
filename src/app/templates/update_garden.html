@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %} Add a garden {% endblock %}
+{% block main %}
+
+	<h1>Edit {{garden_infos.name}}</h1>
+	<form action="" method="post">
+	<label for="name">Garden's name:</label>
+	{{ form.name(class="form-control", value=garden_infos.name) }}
+	<label for="category">Category:</label>
+	{{ form.category(class="form-control", selected=garden_infos.category) }}
+	<label for="address">Garden's address:</label>
+	{{ form.address(class="form-control", value=garden_infos.address) }}
+	<br/>
+	{{ form.submit(class="btn btn-block", value='Update') }}
+	</form>
+{% endblock %}
